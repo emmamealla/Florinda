@@ -1427,9 +1427,18 @@
     } else {
       cartBadge.hidden = true;
     }
-    cartTotalEl.textContent = formatPrice(cartTotalAmount());
+    var mesaOnly = keys.length > 0 && keys.every(function(k){ return k === 'MESA'; });
+    cartTotalEl.textContent = mesaOnly ? 'A consultar' : formatPrice(cartTotalAmount());
+    if(mesaOnly){
+      deliveryStepWrap.hidden = true;
+      dateStepWrap.hidden = true;
+      timeStepWrap.hidden = true;
+      paymentStepWrap.hidden = true;
+    } else if(deliveryStepWrap.hidden && dateStepWrap.hidden && timeStepWrap.hidden && paymentStepWrap.hidden){
+      deliveryStepWrap.hidden = false;
+    }
     var needsTime = selectedDelivery === 'Retiro en el local';
-    var ready = count > 0 && selectedDelivery && selectedDate && (!needsTime || selectedTime) && selectedPayment;
+    var ready = mesaOnly ? count > 0 : (count > 0 && selectedDelivery && selectedDate && (!needsTime || selectedTime) && selectedPayment);
     cartCheckout.classList.toggle('is-disabled', !ready);
     saveCart();
   }
@@ -1554,8 +1563,9 @@
 
   cartCheckout.addEventListener('click', function(e){
     var keys = Object.keys(cart).filter(function(k){ return cart[k].qty > 0; });
+    var mesaOnly = keys.length > 0 && keys.every(function(k){ return k === 'MESA'; });
     var needsTime = selectedDelivery === 'Retiro en el local';
-    if(!keys.length || !selectedDelivery || !selectedDate || (needsTime && !selectedTime) || !selectedPayment){
+    if(!keys.length || (!mesaOnly && (!selectedDelivery || !selectedDate || (needsTime && !selectedTime) || !selectedPayment))){
       e.preventDefault();
       return;
     }
@@ -1566,13 +1576,17 @@
       lines.push('• ' + item.name + ' x' + item.qty + ' — ' + (item.price > 0 ? formatPrice(item.price * item.qty) : 'a consultar'));
     });
     lines.push('');
-    lines.push('Total: ' + formatPrice(cartTotalAmount()));
-    lines.push('Entrega: ' + selectedDelivery);
-    lines.push('Fecha: ' + selectedDateLabel);
-    if(needsTime){
-      lines.push('Horario: ' + selectedTime);
+    if(mesaOnly){
+      lines.push('Total: A consultar');
+    } else {
+      lines.push('Total: ' + formatPrice(cartTotalAmount()));
+      lines.push('Entrega: ' + selectedDelivery);
+      lines.push('Fecha: ' + selectedDateLabel);
+      if(needsTime){
+        lines.push('Horario: ' + selectedTime);
+      }
+      lines.push('Pago: ' + selectedPayment);
     }
-    lines.push('Pago: ' + selectedPayment);
     lines.push('');
     lines.push('¡Gracias!');
 
