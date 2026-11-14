@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://florinda.netlify.app/sitemap.xml
